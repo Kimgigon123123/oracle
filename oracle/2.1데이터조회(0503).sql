@@ -287,4 +287,220 @@ WHERE last_name='King';
 
 SELECT department_id,employee_id,last_name,hire_date
 FROM employees
-WHERE hire_date < '04/01/01'
+WHERE hire_date < '04/01/01';
+
+
+--2.3.4 논리조건 연산자 (p.8)
+-- 조건의 갯수는 여러개가 올 수 있다.
+-- 여러 조건이 있을 경우 각각의 조건들을 AND, OR 연산자를 이용해 연결한다.
+
+--NOT + BETWEEN 연산자, IN 연산자, LIKE 연산자
+
+[예제 2-13] 30번 부서 사원 중 급여가 10000 이하인 사원의 정보를 조회
+-- 사원의 정보는 : EMPLOYEES 테이블
+-- EMPLOYEE_ID ~ DEPARTMENT_ID : 각종 사원의들의 정보중 어떤 특정 컬럼들이 존재
+-- 부서정보는 DEARTMENTS에 있으나, 사원들은 부서 10~110번까지 소속되어 있음
+
+SELECT employee_id, first_name||''||last_name AS 이름,salary,department_id
+FROM employees
+WHERE department_id=30 
+AND salary<=10000;
+
+[예제2-14] 30번 부서 사원 중 급여가 10000 이하이면서 입사일자가 2005년 이전에 입사한 사원의 정보를 조회
+SELECT employee_id, first_name||''||last_name AS 이름,salary,department_id
+FROM employees
+WHERE department_id=30 
+AND salary<=10000
+--AND hire_date < '2005/01/01' ;
+AND hire_date < '2005-01-01'; -- '01-JAN-05' : 1일 - 1월 - 2005년도 
+
+-- NLS: National Language Support (동아시아-한국/중국/일본) RR/MM/DD 
+-- DATE : 날짜, 표현할때 YY(Year) vs RR(50 이상은 1900년대, 50미만은 2000년대 표기법)
+
+[예제 2-15] 30번 부서나 60번 부서에 속한 사원의 정보를 조회하시오
+
+SELECT employee_id,first_name||''||last_name name,hire_date,salary,phone_number,email,department_id
+FROM employees
+WHERE department_id = 30
+OR department_id=60;
+
+
+
+--AND, OR 조건이 혼합되어 사용되는 경우 가독성을 위해 괄호를 붙여주는 것이 좋다
+
+--2.3.5 논리조건 연산자 (p.9)
+--범위 조건 연산자 BETWEEN  초기값 (이상) AND 마지막값(이하);
+[예제2-18] 사번이 110번 부터 120번 까지의 사원 정보를 조회하시오
+--100번부터 206명까지 총 107명 근무하는 회사의 사원정보 테이블
+SELECT *
+FROM employees
+WHERE employee_id >=110
+OR employee_id <=120;
+
+
+SELECT employee_id, first_name||' '||last_name AS 이름,salary,department_id
+FROM employees
+WHERE employee_id BETWEEN 110 AND 120;
+
+
+--(p.10 하단) NOT 연산자와 BETWEEN 연산자를 사용하여 BETWEEN 초기값 AND 마지막값 과 반대되는 조건을 만든다
+
+-- 사번이 110~120을 제외한 나머지 사원정보를 조회한다.
+
+SELECT employee_id, first_name||' '||last_name AS 이름,salary,department_id
+FROM employees
+WHERE NOT employee_id BETWEEN 110 AND 120; -- NOT + 컬럼명
+
+SELECT employee_id, first_name||' '||last_name AS 이름,salary,department_id
+FROM employees
+WHERE employee_id NOT BETWEEN 110 AND 120; -- NOT + NETWEEN ~
+
+-- 두 경우 모두 같은 결과가 조회된다.
+-- BETWEEN이나 관계 연산자로 비교할 수 있는 값은 1) 숫자 데이터 2) 문자 데이터 3) 날짜 데이터 이다.
+-- 11g 버전에서는 NLS 설정이 없어서 문제가 안되지만, 21c 에서는 RR / MM / DD 형식을 따라서 조회하여야
+-- 오류가 발생되지 않는다.
+--ORA-01858: 숫자가 있어야 하는 위치에서 숫자가 아닌 문자가 발견되었습니다. 라는 오류는 무조건 날짜 형식!
+--맞지 않아서 ==> 1) 대게는 변환함수 사용 해서 처리하거나 ~ 2) NLS 세팅을 확인하고 RR/MM/DD로 조회하거나
+-- 도구 > 환경설정 > 데이터베이스 > NLS 확인
+-- NLS 설정 확인 명령 ~
+SELECT *
+FROM v$nls_parameters;
+
+
+-- 날짜 형식으로 변환하는 함수 : TO_DATE('날짜데이터')
+--RR/MM/DD 또는 TO_DATE('날짜데이터','지정형식 YY-MM-DD HH:MI:SS')
+--3장. 함수 - 변환함수 파트(p.27)
+
+
+--2.3.7 IN 조건연산자(p.11)
+--OR 연산자 대신 IN연산자 ==> 가독성, 간결성
+[예제2-25] 30번 부서원 또는 60번 부서원 또는 90번 부서원의 정보를 조회한다.
+SELECT employee_id AS emp_id, first_name||' '||last_name name, salary,department_id AS dept_id
+FROM employees
+WHERE department_id IN(30,60,90);
+
+--NOT 컬럼 IN (값1,값2,값3...)
+SELECT employee_id AS emp_id, first_name||' '||last_name name, salary,department_id AS dept_id
+FROM employees
+WHERE NOT department_id IN(30,60,90);
+
+--컬럼 NOT IN (값1,값2,값3...)
+SELECT employee_id AS emp_id, first_name||' '||last_name name, salary,department_id AS dept_id
+FROM employees
+WHERE department_id NOT IN(30,60,90);
+
+SELECT employee_id AS emp_id, first_name||' '||last_name name, salary,department_id AS dept_id
+FROM employees; --107rows... 14(30,60,90 부서) + 92(나머지 부서)=106... 1명은?? NULL
+
+--2.3.8 LIKE 연산자 (p.11)
+-- 칼럼값중 특정 패턴에 속하는 값을 조회할때 사용하는 문자열 패턴 연산자
+--1) % : 여러개의 문자열을 나타낸다.
+--2) _ : 하나의 문자열을 나타낸다.
+
+
+[예제2-28] 이름이 K로 시작되는 사원 정보를 조회한다.
+--문자데이터는 대,소문자를 구분 vs SQL은 대,소문자를 구분안함
+--예) 'k' 와 'K'는 다른...
+--last_name: 성
+--first_name: 이름
+SELECT *
+FROM employees
+WHERE first_name LIKE 'K%';
+
+[예제2-29] 성이 s로 끝나는 사원 정보를 조회한다.
+SELECT *
+FROM employees
+WHERE last_name LIKE '%s';
+[예제2-30] 이름에 b가 들어가있는 사원 정보를 조회한다.
+SELECT *
+FROM employees
+WHERE first_name LIKE '%b%';
+
+desc employees;
+-- ===================== 자주쓰는 오라클 자료형 ================================
+-- VARCHAR2(길이) : National + VarCHAR2(10) vs VARCHAR2(10) : (한국) 30byte vs (미국) 10byte
+-- VARCHAR(길이) : 일반적인 목적으로 사용하지 않고, 오라클에서 사용할 예정인 타입 ==> 우리는 사용x
+-- NUMBER(길이) : 정수 데이터
+-- NUMBER(총길이,소숫점이하길이):실수 데이터
+--DATE : 날짜 데이터
+-- ※ INT 자료형으로 컬럼을 정의하면 ==> 오라클 내부적으로 NUMBER로 변경해버림..
+-- STRING 자료형으로 컬럼을 정의하면 ==>      "           NUMBER2로 변경해버림..
+--빅데이터, 바이너리(=이미지,오디오,영상)==> BLOB, CLOB, BFILE 타입 
+
+
+[예제 2-31] 이메일의 세번째 문자가 B인 사원정보를 조회한다
+-- % : 여러문자
+-- _ : 하나의 문자
+SELECT *
+FROM employees
+WHERE email LIKE '__B%';
+
+[예제 2-32] 이메일이 뒤에서부터 세번째 문자가 B인 사원정보를 조회한다.
+SELECT *
+FROM employees
+WHERE email LIKE '%B__';
+
+--LIKE 역시 IN, BETWEEN 처음값 AND 마지막 값 과 같이 NOT 연산자와 함께 사용할 수 있다.(p.14)
+[예제2-33] 전화번호가 6으로 시작되지 않는 사원의 정보를 조회한다.
+SELECT *
+FROM employees
+WHERE Phone_Number NOT LIKE '6%';
+
+--========================================
+--Q. %나 _ 자체를 문자열로 조회하고자 한다면?
+--========================================
+SELECT *
+FROM employees
+WHERE JOB_ID LIKE '%_A%';
+
+--ESCAPE 식별자를 사용해 %나 _ 자체를 하나의 문자로 검색하게 한다.
+
+SELECT *
+FROM employees
+WHERE JOB_ID LIKE '%\_A%' escape '\';
+
+--2.3.9 NULL 조건 처리
+-- NULL : 빈 값 ---> ''  / 데이터가 입력되지 않음.
+SELECT *
+FROM locations; 
+
+SELECT *
+FROM locations
+WHERE state_province IS NULL;
+
+SELECT *
+FROM locations
+WHERE state_province IS NOT NULL;
+
+-- IS NULL : NULL인 데이터를 조회
+-- IS NOT NULL : NULL이 아닌 데이터를 조회
+
+--================LOCATIONS (부서 위치 정보 테이블)===================
+-- POSTAL_CODE : 우편번호
+--STATE_PROVINCE : 행정구역 (~주)
+
+
+SELECT employee_id, last_name, salary, department_id, job_id,hire_date
+FROM employees
+WHERE commission_pct IS NULL; -- 거래 수수료를 받지 않는 사람?? 72명... 총 107명 중 35명은 받는 사람!
+
+
+SELECT employee_id, last_name, salary, department_id, job_id,hire_date
+FROM employees
+WHERE commission_pct IS NOT NULL;
+
+SELECT *
+FROM departments
+WHERE department_id = 80;
+
+-- commission_pct : (거래에 따른) 수수로율, 
+--manager_id(매니저,관리자), department_id(부서코드)
+
+SELECT *
+FROM jobs
+WHERE job_id IN ('SA_MAN','SA_REP')
+
+--80번 부서 Sale 파트 ==> 판매부서니까 거래 수수료 (=많이 팔면, 많이 남기는 구조)
+--commission_pct가 NOT NULL 인 이유!  기본급 낮되 , 수수료를 책정해서 지급하는 구조?
+--      "             NULL 인 이유? 판매부서가 아님, 기본 급여가 높거나..
+-- 근데 , 1명이 부서는 없으나 commission_pct 가 NOT NULL인 사람 (178 Kimberely Grant)
