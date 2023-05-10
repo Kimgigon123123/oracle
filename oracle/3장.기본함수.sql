@@ -289,7 +289,222 @@ SELECT LAST_DAY(SYSDATE) Last1,
         LAST_DAY('2013-03-20') Last2
 FROM dual;
 
--- 3.4 변환함수
+SELECT employee_id, first_name,hire_date
+from employees;
+
+--3.3.4 NEXT_DAY(date,char) : date 이후 날짜중에 char로 명시된 첫번째 일자를 반환하는 함수
+--                            돌아오는 요일(char)의 날짜를 반환하는 함수
+-- NLS : 언어 설정이 KOREAN (요일 : SUNDAY,MONDAY... <---> 일요일, 월요일 ...)
+
+[예제3-24]
+
+SELECT NEXT_DAY(SYSDATE,'월요일') NEXT1,
+        NEXT_DAY(SYSDATE,'금요일') NEXT2,
+        NEXT_DAY(SYSDATE,'일') NEXT3,
+        NEXT_DAY(SYSDATE,'화') NEXT4,
+        NEXT_DAY(SYSDATE,4) NEXT5
+FROM dual;
+
+--NLS 설정 : 한국에서 오라클 설치 ==> 자동으로 KOREAN, 요일명도 한글로!
+
+SELECT *
+FROM v$nls_parameters; -- NLS_LANGUGE : KOREAN, 요일명도 한글로!
+
+-- 도구 > 환경설정 > 데이터베이스 > NLS - 날짜언어 : KOREAN
+
+--3.3.5 반올림함수, 버림함수
+-- ※ 숫자,날짜에도 적용가능한 함수, 하지만! 평소에는 숫자에.. 어떤 특정 업무? 특수한 직무에서 사용할 수 있음.
+-- 특수한 직무에서 사용할 수 있음. (함수의 특징으로만 구분)
+--ROUND(n [,i]), ROUND(date,fmt) : 반올림 함수, 
+--TRUNC(n [,i]), TRUNC(date,fmt) : 버림 함수
+
+
+[예제3-25]
+-- 자동형변환(=묵시적 형변환)
+SELECT 10 + '5'
+FROM dual; -- 15로, 알아서 변환해서 연산한 결과 15를 반환
+
+SELECT 10+'ABCD'
+FROM dual; -- ORA-01722: 수치가 부적합합니다 ==> 숫자라고 판단할수 있는 문자데이터는 형변환
+
+
+
+
+-- YYYY or RRRR : 년도를 4자리로 표현
+SELECT ROUND(TO_DATE('2013-06-30'),'YYYY') AS R1,
+        ROUND(TO_DATE('2013-07-01'),'YEAR') AS R2,
+        ROUND(TO_DATE('2013-12-15'),'MONTH') AS R3,
+        ROUND(TO_DATE('2013-12-16'),'MM') AS R4,
+        ROUND(TO_DATE('2013-05-27 11:59:59','YYYY-MM-DD HH24:MI:SS'),'DD') AS R5
+from dual;
+
+[예제3-26]
+SELECT  TRUNC(TO_DATE('2013-06-30'),'YYYY') AS R1,
+        TRUNC(TO_DATE('2013-07-01'),'YEAR') AS R2,
+        TRUNC(TO_DATE('2013-12-15'),'MONTH') AS R3,
+        TRUNC(TO_DATE('2013-12-16'),'MM') AS R4,
+        TRUNC(TO_DATE('2013-05-27 11:59:59','YYYY-MM-DD HH24:MI:SS'),'DD') AS R5
+from dual;
+
+-- 3.4 변환함수 (p.30)
+-- 오라클은 묵시적인 형변환 ==> 숫자+'숫자' (ok), 숫자+'문자' (no!)
+-- 명시적인 형변환 함수들 3가지!! (기본 사용법, 형식)
+-- 형변환 : 강제로, NUMBER --> DATE 바로 변환x
+--            TO_NUMBER()            TO_DATE()
+-- NUMBER <---------------- CHAR  <--------------- DATE
+--   3rd                     1rd                    2rd
+--         --------------->     ------------------->
+--            TO_CHAR()               TO_DATE()
+
+
+--3.4.1 TO_CHAR(date [,fmt])
+-- 년,월,일,시,분,초 형식
+-- * 밀리세컨드 ==> 출퇴근 기록부(?) + SYSTIMESTAME or ????
+
+SELECT SYSDATE 현재시간날짜,SYSTIMESTAMP 현재시간날짜밀리세컨즈_GMT표준시
+FROM dual;
+
+-- ALTER SESSION SET NLS_DATE_FORMAT = 'RR/MM/DD HH:MI:SS' ; -- 이것보다는 가급적이면 변환함수!!
+[예제3-27]
+
+SELECT  TO_CHAR(SYSDATE,'YYYY-MON-DD') AS R1,
+        TO_CHAR(SYSDATE,'RR/MM/DD HH:MI:SS') AS R2,
+        TO_CHAR(SYSDATE,'YY-MM-DD DAY') AS R3
+       
+FROM dual;
+
+
+--3.4.2 TO_DATE()
+
+[예제3-30]
+SELECT TO_DATE('2013-05-27') DATE1,
+      TO_DATE('2013-06-27 11:12:35','YYYY/MM/DD HH:MI:SS AM') DATE2
+FROM dual;
+--3.4.3 TO_NUMBER()
+[예제3-29]
+SELECT TO_NUMBER('12345')+1000 "문자를 숫자로1",
+        TO_NUMBER('123.45') "문자를 숫자로2"
+FROM dual;
+
+--To_DATE() : 문자를 날짜 형식으로 변환하는 함수
+--TO_CHAR() : 문자로 바꾸는 함수
+--TO_NUMBER() : 숫자로 바꾸는 함수
+
 -- 3.5 일반함수
+
+--NULL 관련 함수
+--3.5.1 NVL(exp1, exp2)
+-- NVL의 파라미터인 exp1, exp2는 데이터 유형이 서로 같아야 한다.
+
+[예제3-31]
+SELECT employee_id,first_name,salary,NVL(commission_pct,0) AS "수수료", salary*commission_pct comm
+from employees
+WHERE salary*commission_pct<1000;
+
+[예제3-32]
+SELECT employee_id,first_name,salary,NVL(commission_pct,0) AS "수수료", salary*NVL(commission_pct,0) comm
+from employees
+WHERE salary*NVL(commission_pct,0)<1000;
+
+
+--3.5.2 NVL2(exp1, exp2, exp3)
+
+[예제3-33]
+SELECT employee_id,first_name,NVL(commission_pct,0),
+        NVL2(commission_pct,salary*(1+commission_pct),salary) AS "total_salary"
+FROM employees;
+
+
+--3.5.3 COALESCE(exp1, exp2, exp3, ...)
+
+[예제3-35]
+SELECT COALESCE('A','B','C',NULL) first,
+        COALESCE(NULL,'B','C',NULL) second,
+        COALESCE(Null,null,'C',null) third
+FROM dual;
+
+
+--3.6 DECODE와 CASE
+--보통 조건에 따른 처리, IF~ELSE / SWITCH(case) ..
+-- 오라클에서는 조건에 따른 처리 ==> 함수 DECODE
+-- 오라클 PL/SQL(SQL 프로그램) 에서는 IF~ELSE 있음
+
+
+-- 3.6.1 DECODE(exp,search1,result1, search2,result2, ... [,default]): IF~ELSE 처럼 exp를 검사하여
+-- search1과 일치하면 result1 반환, search2와 일치하면 result2 반환, ... 일치하는게 없으면
+
+[예제3-36] 보너스 지급에 있어, 20번 부서는 20%       (salary의 20%)
+                               30번 부서는 30%
+                               40번 부서는 40%
+                               그외 부서는 0(=지급하지 않는다)
+
+SELECT employee_id,first_name,salary,department_id,
+DECODE(department_id,20,salary*0.2,
+                     30,salary*0.3,
+                     40,salary*0.4,
+                     0) AS "보너스"
+FROM employees
+ORDER BY 5;
+
+
+
+-- 3.6.2 CASE : 함수라기 보다 더 큰 개념을 가진 표현식이다.
+-- 동등비교, 범위비교 (크다,작다..)
+
+--CASE exp WHEN search1 THEN result1
+--         WHEN search2 THEN result2
+--         ...계속...
+--         [ELSE default]
+--END
+
+
+
+--CASE     WHEN condition1 THEN result1
+--         WHEN condition2 THEN result2
+--         ...계속...
+--         [ELSE default]
+--END
+
+
+[예제3-37] 보너스 지급에 있어, 20번 부서는 20%       (salary의 20%)
+                               30번 부서는 30%
+                               40번 부서는 40%
+                               그외 부서는 0(=지급하지 않는다)
+
+SELECT employee_id,last_name,department_id,salary,
+        CASE department_id WHEN 20 THEN salary*0.2
+                           WHEN 30 THEN salary*0.3
+                           WHEN 40 THEN salary*0.4
+                           ELSE 0
+        
+        END AS bonus
+FROM employees;
+
+
+-- 동등비교일때는 DECODE()와 CASE ~ END를 동일하게 처리
+SELECT employee_id,last_name,department_id,salary,
+        CASE    WHEN department_id=20 THEN salary*0.2
+                WHEN department_id=30 THEN salary*0.3
+                WHEN department_id=40 THEN salary*0.4
+                ELSE 0
+        
+        END AS bonus
+FROM employees;
+
+--보너스 지급에 있어서 30번 미만 부서는 급여의 10%를 보너스로 지급,
+--                    30번부터 50번 부서까지는 급여의 20%를 보너스로 지급,
+--                    60번부터 80번 부서까지는 급여의 30%를 보너스로 지급하고,
+--                    그 외의 부서는 40%를 지급한다고 할때,
+--                CASE 표현식을 이용해, 전 사원의 정보와 보너스 금액을 조회하시오.
+                
+SELECT employee_id,last_name,department_id,salary,
+        CASE WHEN department_id<30 THEN salary*0.1
+             WHEN department_id BETWEEN 30 AND 50 THEN salary*0.2
+             WHEN department_id BETWEEN 60 AND 80 THEN salary*0.3
+             ELSE salary*0.4
+        END AS "보너스"
+FROM employees;
+            
+
 
 -- 고급함수 : 데이터 사이언티스트(DS),데이터 분석가(DA) 들이 사용하는 함수
