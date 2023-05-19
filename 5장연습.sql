@@ -112,3 +112,31 @@ from employees e inner join departments d
 using (department_id)
 where department_id=20;
 
+[예제5-15] 사원의 사번, 이름, 부서코드 , 부서명, 위치코드, 도시 정보를 조회한다.
+
+select e.employee_id, e.first_name, e.department_id, d.department_name, l.location_id, l.city
+from employees e inner join departments d
+on e.department_id = d.department_id
+join locations l
+on d.location_id = l.location_id;
+
+[예제5-16] 사원의 사번, 이름, 부서코드, 부서명 정보를 조회한다.
+select e.employee_id, e.first_name, e.department_id, d.department_name
+from employees e left outer join departments d
+on e.department_id = d.department_id;
+
+연습문제 5-2
+1.사번이 110 130 150 에 해당하는 사원의 사번, 이름, 부서명을 조회하는 쿼리문을 ANSI JOIN 형식으로 작성한다.
+select e.employee_id, e.first_name, d.department_name
+from employees e left outer join departments d
+on e.department_id = d.department_id
+where e.employee_id in (110, 130, 150);
+
+2.모든 사원의 사번,이름,부서명,업무코드,업무제목을 조회하여 사번 순으로 정렬하는 쿼리문을 작성한다.
+select e.employee_id, e.first_name, d.department_name, j.job_id, j.job_title
+from employees e left outer join departments d
+on e.department_id=d.department_id
+join jobs j
+on e.job_id = j.job_id
+order by e.employee_id
+
