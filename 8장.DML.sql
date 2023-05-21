@@ -329,7 +329,7 @@ SET emp_count = ( SELECT COUNT(*)
     avg_sal = ( SELECT AVG(e.salary)
                   FROM  employees e
                   WHERE e.department_id = m.dept_id
-                  GROUP BY e.department_id )
+                  GROUP BY e.department_id );
                   
 -- month_salary 처럼 month_salary2를 서브쿼리로 처리
 -- ※ 서브쿼리가 반복됨..WHERE절, GROUP BY 절! ==> 다중컬럼 서브쿼리로 처리하면 훨씬 간결하다!
@@ -337,6 +337,38 @@ SET emp_count = ( SELECT COUNT(*)
 
     
 
+[예제8-14] month_salary2의 emp_count, sum_sal, avg_sal 컬럼을 다중컬럼 서브쿼리를 활용해
+employees의 부서별 집계된 데이터를 업데이트 하시오!
 
+UPDATE month_salary2 m
+SET (emp_count, sum_sal, avg_sal) = (Select count(*), sum(salary), round(avg(salary))
+                                     from employees e
+                                     where e.department_id = m.dept_id
+                                     group by department_id
+                                     );
+                                     
+     
+select *
+from month_salary2;
 
+--커밋 or 롤백
+commit;
 
+--8.3 데이터 삭제 DELETE
+--테이블의 행 데이터를 삭제하는 기본 문법
+--whwere 절의 조건에 일치하는 행 데이터를 삭제한다. (Where 절 생략시 모든 행 데이터가 삭제됨)
+
+/*
+DELETE FROM 테이블명
+WHERE 조건;
+*/
+
+[예제8-15] emp 테이블에서 60번 부서의 사원 정보를 삭제한다.
+--조회
+SELECT *
+FROM emp
+order by dept_id;
+
+--삭제
+delete emp
+where dept_id = 60; --5rows deleted, 58rows remian.
